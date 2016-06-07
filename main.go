@@ -17,6 +17,8 @@ var (
 	size int
 	cpu int
 	max int
+	diff int
+	test string
 )
 
 type Request struct {
@@ -29,6 +31,7 @@ func init() {
 	flag.IntVar(&size, "s", 10000, "Request size (split of min/max")
 	flag.IntVar(&cpu, "cpu", runtime.NumCPU(), "CPU")
 	flag.IntVar(&max, "w", 4, "Maximum number of workers")
+	flag.IntVar(&diff, "d", 5, "Difficulty - number of 0s at the beginning")
 }
 
 type Response struct {
@@ -41,6 +44,10 @@ func dispatcher(reqChan chan Request) {
 	defer close(reqChan)
 	min := 0
 	max := size
+
+	for i := 0; i < diff; i++ {
+		test = test + "0"
+	}
 
 	for i := 0; i < reqs; i++ {
 		var r Request
@@ -67,7 +74,7 @@ func worker(reqChan chan Request, respChan chan Response) {
 			io.WriteString(hash256, "SOME RANDOM STRING" + strconv.Itoa(i))
 
 			hash256Str := hex.EncodeToString(hash256.Sum(nil))
-			if hash256Str[0:5] == "00000" {
+			if hash256Str[0:diff] == test {
 				fmt.Println("-----XXXXX-----")
 				fmt.Println(hash256Str)
 
